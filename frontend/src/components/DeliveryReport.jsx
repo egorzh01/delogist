@@ -16,7 +16,7 @@ export default function DeliveryReport() {
     const fetchServices = async () => {
       try {
         const token = localStorage.getItem("authToken");
-        const res = await axios.get("http://localhost:8000/api/services/", {
+        const res = await axios.get("/api/services/", {
           headers: {
             Authorization: `Token ${token}`,
           },
@@ -24,7 +24,11 @@ export default function DeliveryReport() {
 
         setServices(res.data);
       } catch (error) {
-        console.error(error);
+        if (error.response.status === 401) {
+          localStorage.removeItem("authToken");
+          window.location.reload();
+        }
+        console.error("Error fetching services:", error);
       }
     };
     fetchServices();
@@ -41,7 +45,7 @@ export default function DeliveryReport() {
         if (serviceFilter) {
           params.service = serviceFilter;
         }
-        const res = await axios.get("http://localhost:8000/api/deliveries/", {
+        const res = await axios.get("/api/deliveries/", {
           headers: {
             Authorization: `Token ${token}`,
           },
@@ -51,7 +55,7 @@ export default function DeliveryReport() {
         const newTableData = res.data.map((item) => ({
           id: item.id,
           date: dayjs(item.arrival_time).format("YYYY-MM-DD"),
-          service: item.services?.[0]?.name || "Без услуги",
+          services: item.services || [],
           cargo: item.cargo || "Обычный",
           vehicle: item.transport_number,
           distance: item.distance_km,
@@ -68,8 +72,12 @@ export default function DeliveryReport() {
           count,
         }));
         setChartData(groupedChart.sort((a, b) => a.date.localeCompare(b.date)));
-      } catch (err) {
-        console.error("Ошибка при загрузке доставок:", err);
+      } catch (error) {
+        if (error.response.status === 401) {
+          localStorage.removeItem("authToken");
+          window.location.reload();
+        }
+        console.error("Ошибка при загрузке доставок:", error);
       }
     };
 
@@ -142,7 +150,7 @@ export default function DeliveryReport() {
               <TableCell>Итого</TableCell>
               <TableCell>Дата доставки</TableCell>
               <TableCell>Модель ТС</TableCell>
-              <TableCell>Услуга</TableCell>
+              <TableCell>Услуги</TableCell>
               <TableCell>Дистанция (км)</TableCell>
             </TableRow>
           </TableHead>
@@ -152,7 +160,19 @@ export default function DeliveryReport() {
                 <TableCell>Доставка {index + 1}</TableCell>
                 <TableCell>{row.date}</TableCell>
                 <TableCell>{row.vehicle ?? `A ${100 + index} AA`}</TableCell>
-                <TableCell>{row.service}</TableCell>
+                <TableCell>
+                  {row.services.length > 0 ? (
+                    row.services.map((s, i) => (
+                      <Typography key={i} variant="body2">
+                        {s.name}
+                      </Typography>
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="textSecondary">
+                      Без услуги
+                    </Typography>
+                  )}
+                </TableCell>
                 <TableCell>{row.distance ?? 150 + index * 5}</TableCell>
               </TableRow>
             ))}

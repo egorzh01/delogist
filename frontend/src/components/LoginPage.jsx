@@ -15,7 +15,7 @@ export default function LoginPage({ setToken }) {
       return;
     }
     try {
-      const res = await axios.post("http://localhost:8000/api-token-auth/", {
+      const res = await axios.post("api/auth/", {
         username,
         password,
       });

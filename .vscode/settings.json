@@ -1,4 +1,0 @@
-{
-    "ruff.importStrategy": "fromEnvironment",
-    "mypy-type-checker.importStrategy": "fromEnvironment"
-}

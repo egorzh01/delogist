@@ -1,0 +1,28 @@
+services:
+  backend:
+    build: ./backend
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes:
+      - django-static:/delogist/staticfiles
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    env_file:
+      - .env
+    depends_on:
+      - backend
+    volumes:
+      - django-static:/delogist/staticfiles
+
+  db:
+    image: postgres:17-alpine
+    env_file:
+      - .env
+
+volumes:
+  django-static:
